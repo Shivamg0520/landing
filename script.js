@@ -1,5 +1,9 @@
 // 1. DATA LOADING
-window.onload = function() {
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbX5OF-2VMAP4pvqB0_beISLJvElaDrnynQO3O4E76SLsXqRmDkEMmV6OBmCZX10GP8A/exec"; // Paste your Apps Script Web App URL here
+let remoteData = null;
+
+window.onload = async function() {
+    await fetchRemoteData();
     loadBatchData(1);
     loadBatchData(2);
     loadBatchData(3);
@@ -14,9 +18,49 @@ window.onload = function() {
     }
 }
 
+async function fetchRemoteData() {
+    if (!APPS_SCRIPT_URL) return null;
+    try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?t=${Date.now()}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        remoteData = data;
+        return data;
+    } catch (e) {
+        return null;
+    }
+}
+
+async function saveRemoteData(payload) {
+    if (!APPS_SCRIPT_URL) return false;
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+        });
+        return res.ok;
+    } catch (e) {
+        return false;
+    }
+}
+
 function loadBatchData(i) {
+    const server = remoteData && remoteData.batches && remoteData.batches[i];
     const saved = localStorage.getItem(`cryptoBatch_${i}`);
-    if (saved) {
+    if (server) {
+        const data = server;
+        if(document.getElementById(`b${i}-title`)) {
+            document.getElementById(`b${i}-title`).innerText = data.title;
+            document.getElementById(`b${i}-badge`).innerText = data.badge;
+            document.getElementById(`b${i}-date`).innerText = data.date;
+            document.getElementById(`b${i}-time`).innerText = data.time;
+            document.getElementById(`b${i}-old`).innerText = data.oldPrice;
+            document.getElementById(`b${i}-new`).innerText = data.newPrice;
+            document.getElementById(`b${i}-desc`).innerText = data.desc;
+            applyBatchStatus(i, data.isOpen !== false);
+        }
+    } else if (saved) {
         const data = JSON.parse(saved);
         if(document.getElementById(`b${i}-title`)) {
             document.getElementById(`b${i}-title`).innerText = data.title;
@@ -133,9 +177,10 @@ function loadBatchEditor(batchId) {
     document.getElementById("adminEditor").style.display = "block";
     document.getElementById("editingTitle").innerText = "Editing Batch " + batchId;
 
+    const server = remoteData && remoteData.batches && remoteData.batches[batchId];
     const saved = localStorage.getItem(`cryptoBatch_${batchId}`);
-    if (saved) {
-        const data = JSON.parse(saved);
+    if (server || saved) {
+        const data = server || JSON.parse(saved);
         document.getElementById("editTitle").value = data.title;
         document.getElementById("editBadge").value = data.badge;
         document.getElementById("editDate").value = data.date;
@@ -218,6 +263,7 @@ function saveBatchChanges() {
     }
     
     localStorage.setItem(`cryptoBatch_${b}`, JSON.stringify(data));
+    saveRemoteData({ action: "saveBatch", batchId: b, data: data });
     alert("✅ Saved successfully! Changes will appear on the main page.");
     backToSelect();
 }
@@ -240,9 +286,14 @@ function loadPaymentEditor() {
     if (payment) payment.style.display = "block";
 
     const saved = localStorage.getItem("cryptoPayment");
+    const server = remoteData && remoteData.payment;
     const amountInput = document.getElementById("editPayAmount");
     if (amountInput) {
-        amountInput.value = saved ? JSON.parse(saved).amount : "₹15,999";
+        if (server && server.amount) {
+            amountInput.value = server.amount;
+        } else {
+            amountInput.value = saved ? JSON.parse(saved).amount : "₹15,999";
+        }
     }
 }
 
@@ -251,6 +302,7 @@ function savePaymentSettings() {
     if (!amountInput) return;
     const data = { amount: amountInput.value || "₹15,999" };
     localStorage.setItem("cryptoPayment", JSON.stringify(data));
+    saveRemoteData({ action: "setPayment", amount: data.amount });
     alert("✅ Saved successfully! Changes will appear on the main page.");
     backToSelect();
 }
@@ -258,8 +310,11 @@ function savePaymentSettings() {
 function loadPaymentSettings() {
     const amountEl = document.getElementById("payAmount");
     if (!amountEl) return;
+    const server = remoteData && remoteData.payment;
     const saved = localStorage.getItem("cryptoPayment");
-    if (saved) {
+    if (server && server.amount) {
+        amountEl.textContent = server.amount || "₹15,999";
+    } else if (saved) {
         const data = JSON.parse(saved);
         amountEl.textContent = data.amount || "₹15,999";
     } else {
@@ -281,8 +336,11 @@ function setupBatchStatusToggles() {
     for (let i = 1; i <= 3; i++) {
         const toggle = document.getElementById(`toggleBatch${i}`);
         if (!toggle) continue;
+        const server = remoteData && remoteData.batches && remoteData.batches[i];
         const saved = localStorage.getItem(`cryptoBatch_${i}`);
-        if (saved) {
+        if (server) {
+            toggle.checked = server.isOpen !== false;
+        } else if (saved) {
             const data = JSON.parse(saved);
             toggle.checked = data.isOpen !== false;
         } else {
@@ -293,6 +351,7 @@ function setupBatchStatusToggles() {
             const data = existing ? JSON.parse(existing) : loadDefaultBatchData(i);
             data.isOpen = toggle.checked;
             localStorage.setItem(`cryptoBatch_${i}`, JSON.stringify(data));
+            saveRemoteData({ action: "setBatchStatus", batchId: i, isOpen: data.isOpen });
         });
     }
 }
@@ -446,3 +505,8 @@ window.addEventListener('scroll', function() {
         heroImage.style.transform = `translateY(${scrolled * 0.2}px)`;
     }
 });
+
+
+
+
+
