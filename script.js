@@ -1,5 +1,5 @@
 // 1. DATA LOADING
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbX5OF-2VMAP4pvqB0_beISLJvElaDrnynQO3O4E76SLsXqRmDkEMmV6OBmCZX10GP8A/exec"; // Paste your Apps Script Web App URL here
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxADTbFO0mKAghd9QuQErrLpepNK22YacqUn0TCVNA-J-LqRrS7PPoYMdLSniqnsjIbaA/exec"; // Paste your Apps Script Web App URL here
 let remoteData = null;
 
 window.onload = async function() {
