@@ -1,5 +1,5 @@
 // 1. DATA LOADING
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxADTbFO0mKAghd9QuQErrLpepNK22YacqUn0TCVNA-J-LqRrS7PPoYMdLSniqnsjIbaA/exec"; // Paste your Apps Script Web App URL here
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxfC39ZdoTrTJn_bwfpmxau22eJISTTxWDO11ejh1RMibtNFeh8_SmgGU6uVGtqDKbqOA/exec"; // Paste your Apps Script Web App URL here
 let remoteData = null;
 
 window.onload = async function() {
@@ -79,11 +79,12 @@ function loadBatchData(i) {
 
 function startOfferTimer() {
     const timer = document.getElementById("offerTimer");
-    if (!timer) return;
-
-    const minutesEl = timer.querySelector('[data-timer="minutes"]');
-    const secondsEl = timer.querySelector('[data-timer="seconds"]');
+    const minutesEl = timer ? timer.querySelector('[data-timer="minutes"]') : null;
+    const secondsEl = timer ? timer.querySelector('[data-timer="seconds"]') : null;
     const stickyTimer = document.getElementById("stickyTimer");
+    const heroBadgeTimer = document.querySelector(".offer-badge-timer");
+
+    if (!minutesEl && !secondsEl && !stickyTimer && !heroBadgeTimer) return;
 
     const initialSeconds = 15 * 60 + 25;
     let remaining = initialSeconds;
@@ -99,10 +100,13 @@ function startOfferTimer() {
         const mins = Math.floor(remaining / 60);
         const secs = remaining % 60;
 
-        minutesEl.textContent = pad(mins);
-        secondsEl.textContent = pad(secs);
+        if (minutesEl) minutesEl.textContent = pad(mins);
+        if (secondsEl) secondsEl.textContent = pad(secs);
         if (stickyTimer) {
             stickyTimer.textContent = `${pad(mins)}:${pad(secs)}`;
+        }
+        if (heroBadgeTimer) {
+            heroBadgeTimer.textContent = `${pad(mins)}:${pad(secs)}`;
         }
         remaining -= 1;
     }
@@ -116,7 +120,7 @@ function setupStickyOffer() {
     if (!sticky) return;
 
     function onScroll() {
-        const shouldShow = window.scrollY > 220;
+        const shouldShow = true;
         sticky.classList.toggle("active", shouldShow);
         sticky.setAttribute("aria-hidden", shouldShow ? "false" : "true");
     }
@@ -288,6 +292,8 @@ function loadPaymentEditor() {
     const saved = localStorage.getItem("cryptoPayment");
     const server = remoteData && remoteData.payment;
     const amountInput = document.getElementById("editPayAmount");
+    const stickyPriceInput = document.getElementById("editStickyPrice");
+    const stickyOldInput = document.getElementById("editStickyOld");
     if (amountInput) {
         if (server && server.amount) {
             amountInput.value = server.amount;
@@ -295,33 +301,58 @@ function loadPaymentEditor() {
             amountInput.value = saved ? JSON.parse(saved).amount : "₹15,999";
         }
     }
+    if (stickyPriceInput) {
+        if (server && server.stickyPrice) {
+            stickyPriceInput.value = server.stickyPrice;
+        } else {
+            stickyPriceInput.value = saved ? JSON.parse(saved).stickyPrice : "₹4999";
+        }
+    }
+    if (stickyOldInput) {
+        if (server && server.stickyOld) {
+            stickyOldInput.value = server.stickyOld;
+        } else {
+            stickyOldInput.value = saved ? JSON.parse(saved).stickyOld : "₹20000";
+        }
+    }
 }
-
 function savePaymentSettings() {
     const amountInput = document.getElementById("editPayAmount");
     if (!amountInput) return;
-    const data = { amount: amountInput.value || "₹15,999" };
+    const stickyPriceInput = document.getElementById("editStickyPrice");
+    const stickyOldInput = document.getElementById("editStickyOld");
+    const data = { 
+        amount: amountInput.value || "₹15,999",
+        stickyPrice: stickyPriceInput ? (stickyPriceInput.value || "₹4999") : "₹4999",
+        stickyOld: stickyOldInput ? (stickyOldInput.value || "₹20000") : "₹20000"
+    };
     localStorage.setItem("cryptoPayment", JSON.stringify(data));
-    saveRemoteData({ action: "setPayment", amount: data.amount });
+    saveRemoteData({ action: "setPayment", amount: data.amount, stickyPrice: data.stickyPrice, stickyOld: data.stickyOld });
     alert("✅ Saved successfully! Changes will appear on the main page.");
     backToSelect();
 }
-
 function loadPaymentSettings() {
     const amountEl = document.getElementById("payAmount");
-    if (!amountEl) return;
+    const stickyPriceEl = document.getElementById("stickyPrice");
+    const stickyOldEl = document.getElementById("stickyOld");
+    if (!amountEl && !stickyPriceEl && !stickyOldEl) return;
     const server = remoteData && remoteData.payment;
     const saved = localStorage.getItem("cryptoPayment");
     if (server && server.amount) {
-        amountEl.textContent = server.amount || "₹15,999";
+        if (amountEl) amountEl.textContent = server.amount || "₹15,999";
+        if (stickyPriceEl) stickyPriceEl.textContent = server.stickyPrice || "₹4999";
+        if (stickyOldEl) stickyOldEl.textContent = server.stickyOld || "₹20000";
     } else if (saved) {
         const data = JSON.parse(saved);
-        amountEl.textContent = data.amount || "₹15,999";
+        if (amountEl) amountEl.textContent = data.amount || "₹15,999";
+        if (stickyPriceEl) stickyPriceEl.textContent = data.stickyPrice || "₹4999";
+        if (stickyOldEl) stickyOldEl.textContent = data.stickyOld || "₹20000";
     } else {
-        amountEl.textContent = "₹15,999";
+        if (amountEl) amountEl.textContent = "₹15,999";
+        if (stickyPriceEl) stickyPriceEl.textContent = "₹4999";
+        if (stickyOldEl) stickyOldEl.textContent = "₹20000";
     }
 }
-
 function applyBatchStatus(batchId, isOpen) {
     const card = document.querySelector(`.card-3d[data-batch="${batchId}"]`);
     const cta = document.getElementById(`b${batchId}-cta`);
@@ -416,63 +447,36 @@ if(cursor) {
 
 // Enhanced Scroll Reveal
 function setupScrollReveal() {
-    window.addEventListener('scroll', reveal);
-    function reveal(){
-        var reveals = document.querySelectorAll('.reveal');
-        for(var i = 0; i < reveals.length; i++){
-            var windowheight = window.innerHeight;
-            var revealtop = reveals[i].getBoundingClientRect().top;
-            var revealpoint = 120;
-            if(revealtop < windowheight - revealpoint){
+    const reveals = Array.from(document.querySelectorAll('.reveal'));
+    if (!reveals.length) return;
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+
+        reveals.forEach(el => observer.observe(el));
+        return;
+    }
+
+    // Fallback for older browsers
+    function revealOnScroll(){
+        const windowheight = window.innerHeight;
+        for (let i = 0; i < reveals.length; i++) {
+            const revealtop = reveals[i].getBoundingClientRect().top;
+            const revealpoint = 80;
+            if (revealtop < windowheight - revealpoint) {
                 reveals[i].classList.add('active');
             }
         }
     }
-    reveal(); 
-}
-
-// Burger Menu Toggle
-const menu = document.getElementById("mobileMenu");
-const hamburgerBtn = document.querySelector(".hamburger-btn");
-const closeBtn = menu ? menu.querySelector(".close-btn") : null;
-const menuBackdrop = document.querySelector(".menu-backdrop");
-
-function setMenuState(isOpen) {
-    if (!menu || !hamburgerBtn) return;
-    menu.classList.toggle("open", isOpen);
-    if (menuBackdrop) {
-        menuBackdrop.classList.toggle("open", isOpen);
-    }
-    document.body.classList.toggle("menu-open", isOpen);
-    hamburgerBtn.classList.toggle("is-open", isOpen);
-    hamburgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    menu.setAttribute("aria-hidden", isOpen ? "false" : "true");
-}
-
-if (menu && hamburgerBtn) {
-    hamburgerBtn.addEventListener("click", () => {
-        const isOpen = menu.classList.contains("open");
-        setMenuState(!isOpen);
-    });
-
-    if (closeBtn) {
-        closeBtn.addEventListener("click", () => setMenuState(false));
-    }
-
-    menu.addEventListener("click", (e) => {
-        if (e.target === menu) {
-            setMenuState(false);
-        }
-    });
-    if (menuBackdrop) {
-        menuBackdrop.addEventListener("click", () => setMenuState(false));
-    }
-
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && menu.classList.contains("open")) {
-            setMenuState(false);
-        }
-    });
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll();
 }
 
 // Add smooth scrolling for anchor links
@@ -480,9 +484,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
-        if (menu && menu.classList.contains("open")) {
-            setMenuState(false);
-        }
         if (target) {
             target.scrollIntoView({
                 behavior: 'smooth',
@@ -505,8 +506,4 @@ window.addEventListener('scroll', function() {
         heroImage.style.transform = `translateY(${scrolled * 0.2}px)`;
     }
 });
-
-
-
-
 

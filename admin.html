@@ -6,7 +6,7 @@
     <title>CryptoVarta Admin Panel</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Admin Specific Overrides */
         body { 
@@ -69,7 +69,7 @@
             color: var(--neon-green); 
             margin-bottom: 30px;
             font-size: 2rem;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Inter', sans-serif;
             text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
         }
         
@@ -88,7 +88,7 @@
             border-radius: 10px;
             font-size: 0.95rem;
             transition: all 0.3s;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
         input:focus, textarea:focus { 
@@ -220,7 +220,7 @@
             text-align: center;
             margin-bottom: 25px;
             font-size: 1.5rem;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
         .form-group {
@@ -321,37 +321,30 @@
                 <label><i class="fas fa-heading"></i> Batch Title</label>
                 <input type="text" id="editTitle" placeholder="e.g., Evening Batch">
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-tag"></i> Badge Label</label>
                 <input type="text" id="editBadge" placeholder="e.g., Filling Fast">
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-calendar-alt"></i> Start Date</label>
                 <input type="text" id="editDate" placeholder="e.g., 15 Feb">
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-clock"></i> Time</label>
                 <input type="text" id="editTime" placeholder="e.g., 8:00 PM IST">
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-strikethrough"></i> Original Price</label>
                 <input type="text" id="editOldPrice" placeholder="e.g., ₹20000">
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-rupee-sign"></i> Discounted Price</label>
                 <input type="text" id="editNewPrice" placeholder="e.g., ₹4999">
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-align-left"></i> Description</label>
                 <textarea id="editDesc" rows="3" placeholder="Brief description of the batch"></textarea>
             </div>
-            
             <div class="form-group">
                 <label><i class="fas fa-toggle-on"></i> Batch Status</label>
                 <label class="toggle-wrap">
@@ -377,6 +370,14 @@
             <div class="form-group">
                 <label><i class="fas fa-rupee-sign"></i> One-time Payment Amount</label>
                 <input type="text" id="editPayAmount" placeholder="e.g., ₹15,999">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-rupee-sign"></i> Sticky Current Price</label>
+                <input type="text" id="editStickyPrice" placeholder="e.g., ₹4999">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-strikethrough"></i> Sticky Old Price</label>
+                <input type="text" id="editStickyOld" placeholder="e.g., ₹20000">
             </div>
             <button onclick="savePaymentSettings()" class="btn-glow">
                 <i class="fas fa-save"></i> Save Changes
